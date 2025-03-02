@@ -354,8 +354,69 @@ public class PizzaStore {
     * Creates a new user
     **/
    public static void CreateUser(PizzaStore esql){
-   }//end CreateUser
+      try {
+         String login, password, role, favoriteItems, phoneNum;
+         // get user login input
+         System.out.print("Enter login: ");
+         login = in.readLine().trim();
 
+         // validate login
+         if (login.length() > 50 || login.isEmpty()) {
+            System.out.println("Error: Login must be between 1 and 50 characters.");
+            return;
+         }
+
+         // check for unique login
+         String checkQuery = String.format("SELECT login FROM Users WHERE login = '%s';", login);
+         int count = esql.executeQuery(checkQuery);
+         if (count > 0) {
+            System.out.println("Error: Login already exists. Please choose a different login.");
+            return;
+         }
+
+         // get user password input
+         System.out.print("Enter password: ");
+         password = in.readLine().trim();
+
+         // validate password
+         if (password.length() > 30 || password.isEmpty()) {
+            System.out.println("Error: Password must be between 1 and 30 characters.");
+            return;
+         }
+
+         // get user phone number input
+         System.out.print("Enter phone number: ");
+         phoneNum = in.readLine().trim();
+         
+         // validate phone number
+         String phoneRegex = "^\\d{3}-\\d{3}-\\d{4}$";
+         if (phoneNum.isEmpty()) {
+            System.out.println("Error: Phone number cannot be empty.");
+            return;
+         }
+         if (!phoneNum.matches(phoneRegex)) {
+            System.out.println("Error: Phone number must be in the format XXX-XXX-XXXX.");
+            return;
+         }
+
+         // set role and favorite item
+         role = "customer";
+         favoriteItems = "";
+
+         // build SQL statement 
+         String query = String.format(
+            "INSERT INTO Users (login, password, role, favoriteItems, phoneNum)" +
+            "VALUES ('%s', '%s', '%s', '%s', '%s');",
+            login, password, role, favoriteItems, phoneNum);
+
+         // execute SQL statement
+         esql.executeUpdate(query);
+         System.out.println("User created successfully!");
+
+      } catch(Exception e) {
+         System.err.println("An error occurred while creating user: " + e.getMessage());
+      }
+   }//end CreateUser
 
    /*
     * Check log in credentials for an existing user
