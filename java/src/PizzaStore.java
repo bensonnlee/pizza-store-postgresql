@@ -423,6 +423,39 @@ public class PizzaStore {
     * @return User login or null is the user does not exist
     **/
    public static String LogIn(PizzaStore esql){
+      try {
+         String user_login, password;
+         // get user login input
+         System.out.print("Enter login: ");
+         user_login = in.readLine().trim();
+
+         // validate login
+         if (user_login.length() > 50 || user_login.isEmpty()) {
+            System.out.println("Error: Login must be between 1 and 50 characters.");
+            return null;
+         }
+
+         System.out.print("Enter password: ");
+         password = in.readLine().trim();
+
+         // validate password
+         if (password.length() > 50 || password.isEmpty()) {
+            System.out.println("Error: Password must be between 1 and 50 characters.");
+            return null;
+         }
+
+         String password_query = String.format("SELECT login, password FROM Users WHERE login = '%s' AND password = '%s';", user_login, password);
+         int count = esql.executeQuery(password_query);
+         if (count <= 0) {
+            System.out.println("Error: User does not exists. Incorrect login or password.");
+            return null;
+         }
+
+         return user_login;
+      }catch(Exception e) {
+         System.err.println("An error occurred while creating user: " + e.getMessage());
+      }
+
       return null;
    }//end
 
