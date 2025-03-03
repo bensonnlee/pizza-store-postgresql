@@ -35,6 +35,9 @@ public class PizzaStore {
    // reference to physical database connection.
    private Connection _connection = null;
 
+   // Field to store the currently logged in user.
+   private String currentUser;
+
    // handling the keyboard inputs through a BufferedReader
    // This variable can be global for convenience.
    static BufferedReader in = new BufferedReader(
@@ -220,6 +223,16 @@ public class PizzaStore {
          // ignored.
       }//end try
    }//end cleanup
+
+   // Setter for the current user.
+   public void setCurrentUser(String user) {
+      this.currentUser = user;
+   }
+
+   // Getter for the current user.
+   public String getCurrentUser() {
+      return this.currentUser;
+   }
 
    /**
     * The main execution method
@@ -450,7 +463,7 @@ public class PizzaStore {
             System.out.println("Error: User does not exists. Incorrect login or password.");
             return null;
          }
-
+         esql.setCurrentUser(user_login);
          return user_login;
       }catch(Exception e) {
          System.err.println("An error occurred while creating user: " + e.getMessage());
