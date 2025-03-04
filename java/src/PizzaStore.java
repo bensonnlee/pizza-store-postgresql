@@ -474,7 +474,33 @@ public class PizzaStore {
 
 // Rest of the functions definition go in here
 
-   public static void viewProfile(PizzaStore esql) {}
+   public static void viewProfile(PizzaStore esql) {
+      String login = esql.getCurrentUser();
+      System.out.println("\n=== Profile for " + login + " ===");
+      try {
+         // Construct SQL query to fetch the user's profile information.
+         String query = String.format("SELECT favoriteItems, phoneNum, role FROM Users WHERE login = '%s';", login);
+         
+         // Retrieve the result as a list of records.
+         List<List<String>> results = esql.executeQueryAndReturnResult(query);
+         List<String> row = results.get(0);
+         String favoriteItems = row.get(0);
+         String phoneNum = row.get(1);
+         String role = row.get(2);
+         
+         // Prepare a formatted table output.
+         String line = "+----------------------+--------------------------+";
+         System.out.println(line);
+         System.out.printf("| %-20s | %-24s |\n", "Field", "Value");
+         System.out.println(line);
+         System.out.printf("| %-20s | %-24s |\n", "Favorite Items", favoriteItems);
+         System.out.printf("| %-20s | %-24s |\n", "Phone Number", phoneNum);
+         System.out.printf("| %-20s | %-24s |\n", "Role", role);
+         System.out.println(line);
+     } catch (Exception e) {
+         System.err.println("An error occurred while viewing profile: " + e.getMessage());
+     }
+   }
    public static void updateProfile(PizzaStore esql) {}
    public static void viewMenu(PizzaStore esql) {}
    public static void placeOrder(PizzaStore esql) {}
