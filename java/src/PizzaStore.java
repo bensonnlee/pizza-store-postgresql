@@ -494,30 +494,26 @@ public class PizzaStore {
 
          //check if role is manager
          String check_role_query = String.format("SELECT * FROM Users WHERE login = '%s' AND role = 'manager'", manager_login);
-         int role_check  = esql.executeQuery(check_role_query);
-         System.out.println(role_check);
-         if (role_check <= 0) {
-            System.out.println("You are not the manager.");
+         if (esql.executeQuery(check_role_query) < 1) {
+            System.out.println("Error: Access denied. You must be a manager to update a user.");
             return;
          }
 
          //Pick user you want to update
-         System.out.print("User to update: ");
+         System.out.print("Enter the login of the user you want to update: ");
          String update_login = in.readLine().trim();
 
          //check if user exists
          String user_exists = String.format("SELECT * FROM Users WHERE login = '%s'", update_login);
-         int user_count = esql.executeQuery(user_exists);
-         if (user_count <= 0) {
-            System.out.println("User does not exist");
+         if (esql.executeQuery(user_exists) < 1) {
+            System.out.println("Error: User " + update_login + " does not exist\n");
             return;
          }
 
          boolean update_menu = true;
-
          while (update_menu) {
              //Update menu
-            System.out.println("UPDATE MENU");
+            System.out.println("UPDATE MENU FOR USER: " + update_login);
             System.out.println("-----------");
             System.out.println("1. Update user's login");
             System.out.println("2. Update user's role");
@@ -525,25 +521,51 @@ public class PizzaStore {
 
             switch(readChoice()) {
                case 1: //new login validation
-                  System.out.print("new user login: ");
+                  System.out.print("New user login: ");
                   String new_login = in.readLine().trim();
                   String check_new_login = String.format("SELECT * FROM Users WHERE login = '%s'", new_login);
-                  int new_user_count = esql.executeQuery(check_new_login);
-                  if (new_user_count > 0) {
+                  if (esql.executeQuery(check_new_login) > 0) {
                      System.out.println("User login already exists. Please pick another one");
                      break;
                   }
-
                   String update_login_query = String.format("UPDATE Users SET login = '%s' WHERE login = '%s'", new_login, update_login);
                   esql.executeUpdate(update_login_query);
                   String test1 = String.format("SELECT * FROM Users WHERE login = '%s'", new_login);
                   System.out.println(esql.executeQueryAndReturnResult(test1));
-                  System.out.println("User " + update_login + " is now " + new_login);
+                  System.out.println("User \"" + update_login + "\" is now User \"" + new_login + "\"");
+                  update_login = new_login;
                   break;
-               case 2: //new user role
+               case 2: //new user role with numeric selection
                   //read in new role
-                  System.out.print("new user role: ");
-                  String new_role = in.readLine().trim();
+                  System.out.println("Select new role:");
+                  System.out.println("1. Customer");
+                  System.out.println("2. Manager");
+                  System.out.println("3. Driver");
+                  int roleChoice;
+                  try {
+                     roleChoice = Integer.parseInt(in.readLine().trim());
+                  } catch(NumberFormatException e) {
+                     System.out.println("Invalid input. Please enter a number.");
+                     break;
+                  }
+                  String new_role = "";
+                  switch(roleChoice) {
+                     case 1:
+                        new_role = "customer";
+                        break;
+                     case 2:
+                        new_role = "manager";
+                        break;
+                     case 3:
+                        new_role = "driver";
+                        break;
+                     default:
+                        System.out.println("Invalid choice. Please select a valid role.");
+                        break;
+                  }
+                  if(new_role.equals("")) {
+                     break;
+                  }
 
                   String test2 = String.format("SELECT * FROM Users WHERE login = '%s'", update_login);
                   String old_role = esql.executeQueryAndReturnResult(test2).get(0).get(2).trim();
@@ -556,7 +578,7 @@ public class PizzaStore {
                   List<List<String>> user = esql.executeQueryAndReturnResult(test2);
                   System.out.println(user);
                   String check_new_role = user.get(0).get(2).trim(); 
-                  System.out.println(old_role + " " + update_login + " is now " + check_new_role + " " + update_login);
+                  System.out.println("User \"" + update_login + "\" is now a " + check_new_role);
                   break;
                case 9: 
                   update_menu = false;
