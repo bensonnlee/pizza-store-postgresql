@@ -474,8 +474,7 @@ public class PizzaStore {
 
 // Rest of the functions definition go in here
 
-   public static void viewProfile(PizzaStore esql) {
-      String login = esql.getCurrentUser();
+   public static void printProfileHelper(PizzaStore esql, String login) {
       System.out.println("\n=== Profile for " + login + " ===");
       try {
          // Construct SQL query to fetch the user's profile information.
@@ -501,6 +500,12 @@ public class PizzaStore {
          System.err.println("An error occurred while viewing profile: " + e.getMessage());
      }
    }
+
+   public static void viewProfile(PizzaStore esql) {
+      String login = esql.getCurrentUser();
+      printProfileHelper(esql, login);
+   }
+   
    public static void updateProfile(PizzaStore esql) {}
    public static void viewMenu(PizzaStore esql) {}
    public static void placeOrder(PizzaStore esql) {}
@@ -556,10 +561,9 @@ public class PizzaStore {
                   }
                   String update_login_query = String.format("UPDATE Users SET login = '%s' WHERE login = '%s'", new_login, update_login);
                   esql.executeUpdate(update_login_query);
-                  String test1 = String.format("SELECT * FROM Users WHERE login = '%s'", new_login);
-                  System.out.println(esql.executeQueryAndReturnResult(test1));
-                  System.out.println("User \"" + update_login + "\" is now User \"" + new_login + "\"");
-                  update_login = new_login;
+                  update_login = new_login; // Update the login identifier for further operations.
+                  System.out.println("User login updated successfully. New profile:");
+                  printProfileHelper(esql, update_login);
                   break;
                case 2: //new user role with numeric selection
                   //read in new role
@@ -592,19 +596,10 @@ public class PizzaStore {
                   if(new_role.equals("")) {
                      break;
                   }
-
-                  String test2 = String.format("SELECT * FROM Users WHERE login = '%s'", update_login);
-                  String old_role = esql.executeQueryAndReturnResult(test2).get(0).get(2).trim();
-
-                  //set user role to new role
                   String update_role_query = String.format("UPDATE Users SET role = '%s' WHERE login = '%s'", new_role, update_login);
                   esql.executeUpdate(update_role_query);
-
-                  //check output to screen
-                  List<List<String>> user = esql.executeQueryAndReturnResult(test2);
-                  System.out.println(user);
-                  String check_new_role = user.get(0).get(2).trim(); 
-                  System.out.println("User \"" + update_login + "\" is now a " + check_new_role);
+                  System.out.println("User role updated successfully. New profile:");
+                  printProfileHelper(esql, update_login);
                   break;
                case 9: 
                   update_menu = false;
