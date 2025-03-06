@@ -509,7 +509,164 @@ public class PizzaStore {
    public static void updateProfile(PizzaStore esql) {}
    public static void viewMenu(PizzaStore esql) {}
    public static void placeOrder(PizzaStore esql) {}
-   public static void viewAllOrders(PizzaStore esql) {}
+
+   /*
+      View info about all user's order. Customers can only see their own order info.
+      Managers and drivers can view all orders of a specific user.
+   */
+   public static void viewAllOrders(PizzaStore esql) {
+      try {
+         //Get role of current user
+         String curr_user_login = esql.getCurrentUser();
+         String user_role_query = String.format("SELECT role FROM Users WHERE login = '%s'", curr_user_login);
+         List<List<String>> user = esql.executeQueryAndReturnResult(user_role_query);
+         String user_role = user.get(0).get(0).trim();
+
+         if (user_role.equals(String.format("customer"))) { //if customer, find order with user login
+            String food_order_query = 
+               String.format("SELECT F.orderID, F.orderTimestamp, F.totalPrice, F.orderStatus, I.itemName, I.quantity FROM FoodOrder F JOIN ItemsInOrder I ON F.orderID = I.orderID GROUP BY F.orderID, I.itemName, I.quantity HAVING F.login = '%s'", 
+               curr_user_login);
+            List<List<String>> user_orders = esql.executeQueryAndReturnResult(food_order_query);
+            if (user_orders.size() <= 0) {
+               System.out.println("No orders in history");
+            }
+
+            //turn the all user_orders into List of Lists of each order
+            List<List<String>> individual_orders = new ArrayList<>();
+            List<String> each_order = new ArrayList<>();
+            each_order.add(user_orders.get(0).get(0));
+            each_order.add(user_orders.get(0).get(1));
+            each_order.add(user_orders.get(0).get(2));
+            each_order.add(user_orders.get(0).get(3).trim());
+            each_order.add(user_orders.get(0).get(4));
+            each_order.add(user_orders.get(0).get(5));
+
+            //grab items in orders order = (orderID, itemName, quantity, itemName, quanitity, ...)
+            for (int i = 1; i < user_orders.size(); i++) {
+               String orderID = user_orders.get(i).get(0);
+
+               if (!orderID.equals(each_order.get(0))) {
+                  individual_orders.add(each_order);
+                  each_order = new ArrayList<>();
+                  each_order.add(orderID);
+                  each_order.add(user_orders.get(i).get(1));
+                  each_order.add(user_orders.get(i).get(2));
+                  each_order.add(user_orders.get(i).get(3).trim());
+               }
+
+               each_order.add(user_orders.get(i).get(4));
+               each_order.add(user_orders.get(i).get(5));
+
+            }
+            individual_orders.add(each_order);
+
+            //print out the orders 
+            for (int i = 0; i < individual_orders.size(); i++) {
+               String id = individual_orders.get(i).get(0);
+               String timestamp = individual_orders.get(i).get(1);
+               String orderPrice = individual_orders.get(i).get(2);
+               String status = individual_orders.get(i).get(3);
+               String firstItem = individual_orders.get(i).get(4);
+               String firstQuantity = individual_orders.get(i).get(5);
+
+               String line = "+----------------------+------------------------------------------+";
+               System.out.println(line);
+               System.out.printf("| %-20s | %-40s |\n", "Field", "Value");
+               System.out.println(line);
+               System.out.printf("| %-20s | %-40s |\n", "OrderID", id);
+               System.out.printf("| %-20s | %-40s |\n", "Order Timestamp", timestamp);
+               System.out.printf("| %-20s | %-40s |\n", "Total Price", orderPrice);
+               System.out.printf("| %-20s | %-40s |\n", "Order Status", status);
+               System.out.printf("| %-20s | %-40s |\n", "", "");
+               System.out.println(line);
+               System.out.printf("| %-20s | %-40s |\n", "Items - Quantity", firstItem + " x " + firstQuantity);
+               for (int j = 6; j < individual_orders.get(i).size() - 1; j = j + 2) {
+                  System.out.printf("| %-20s | %-40s |\n", "", individual_orders.get(i).get(j) + " x " +individual_orders.get(i).get(j + 1));
+               }
+               System.out.println(line);
+            }
+         }
+         else { //if current user is a manager or driver
+            String input_login; // get user login
+            System.out.print("Input user login: ");
+            input_login = in.readLine().trim();
+
+            //check if user exists
+            String check_user_query = String.format("SELECT * FROM Users WHERE login = '%s'", input_login);
+            int count = esql.executeQuery(check_user_query);
+            if (count <= 0) {
+               System.out.println("User does not exist");
+               return;
+            }
+            String food_order_query = 
+               String.format("SELECT F.orderID, F.orderTimestamp, F.totalPrice, F.orderStatus, I.itemName, I.quantity FROM FoodOrder F JOIN ItemsInOrder I ON F.orderID = I.orderID GROUP BY F.orderID, I.itemName, I.quantity HAVING F.login = '%s'", 
+               input_login);
+            List<List<String>> user_orders = esql.executeQueryAndReturnResult(food_order_query);
+            if (user_orders.size() <= 0) {
+               System.out.println("No orders in history");
+            }
+
+            List<List<String>> individual_orders = new ArrayList<>();
+            List<String> each_order = new ArrayList<>();
+            each_order.add(user_orders.get(0).get(0));
+            each_order.add(user_orders.get(0).get(1));
+            each_order.add(user_orders.get(0).get(2));
+            each_order.add(user_orders.get(0).get(3).trim());
+            each_order.add(user_orders.get(0).get(4));
+            each_order.add(user_orders.get(0).get(5));
+
+            //grab items in orders order = (orderID, itemName, quantity, itemName, quanitity, ...)
+            for (int i = 1; i < user_orders.size(); i++) {
+               String orderID = user_orders.get(i).get(0);
+
+               if (!orderID.equals(each_order.get(0))) {
+                  individual_orders.add(each_order);
+                  each_order = new ArrayList<>();
+                  each_order.add(orderID);
+                  each_order.add(user_orders.get(i).get(1));
+                  each_order.add(user_orders.get(i).get(2));
+                  each_order.add(user_orders.get(i).get(3).trim());
+               }
+
+               each_order.add(user_orders.get(i).get(4));
+               each_order.add(user_orders.get(i).get(5));
+
+            }
+            individual_orders.add(each_order);
+
+            //print out the orders
+            for (int i = 0; i < individual_orders.size(); i++) {
+               String id = individual_orders.get(i).get(0);
+               String timestamp = individual_orders.get(i).get(1);
+               String orderPrice = individual_orders.get(i).get(2);
+               String status = individual_orders.get(i).get(3);
+               String firstItem = individual_orders.get(i).get(4);
+               String firstQuantity = individual_orders.get(i).get(5);
+
+               String line = "+----------------------+------------------------------------------+";
+               System.out.println(line);
+               System.out.printf("| %-20s | %-40s |\n", "Field", "Value");
+               System.out.println(line);
+               System.out.printf("| %-20s | %-40s |\n", "OrderID", id);
+               System.out.printf("| %-20s | %-40s |\n", "Order Timestamp", timestamp);
+               System.out.printf("| %-20s | %-40s |\n", "Total Price", orderPrice);
+               System.out.printf("| %-20s | %-40s |\n", "Order Status", status);
+               System.out.printf("| %-20s | %-40s |\n", "", "");
+               System.out.println(line);
+               System.out.printf("| %-20s | %-40s |\n", "Items - Quantity", firstItem + " x " + firstQuantity);
+               for (int j = 6; j < individual_orders.get(i).size() - 1; j = j + 2) {
+                  System.out.printf("| %-20s | %-40s |\n", "", individual_orders.get(i).get(j) + " x " +individual_orders.get(i).get(j + 1));
+               }
+               System.out.println(line);
+            }
+         }
+
+         return;
+      }catch(Exception e) {
+         System.err.println("An error occured when while viewing an order: " + e.getMessage());
+      }
+   }
+
    public static void viewRecentOrders(PizzaStore esql) {}
    public static void viewOrderInfo(PizzaStore esql) {}
    public static void viewStores(PizzaStore esql) {}
