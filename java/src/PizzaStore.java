@@ -670,7 +670,51 @@ public class PizzaStore {
    public static void viewRecentOrders(PizzaStore esql) {}
    public static void viewOrderInfo(PizzaStore esql) {}
    public static void viewStores(PizzaStore esql) {}
-   public static void updateOrderStatus(PizzaStore esql) {}
+
+   /*
+      Update the Order Status of a given orderID (must be driver or manager)
+   */
+   public static void updateOrderStatus(PizzaStore esql) {
+      try {
+         String curr_user_login = esql.getCurrentUser();
+         String user_role_query = String.format("SELECT role FROM Users WHERE login = '%s'", curr_user_login);
+         List<List<String>> user = esql.executeQueryAndReturnResult(user_role_query);
+         String user_role = user.get(0).get(0).trim(); // check if role is not customer
+
+         if (!user_role.equals(String.format("customer"))) {
+            String update_orderid; //get order id to update
+            System.out.print("Order ID: ");
+            update_orderid = in.readLine().trim();
+
+            String check_order = String.format("SELECT * FROM FoodOrder WHERE orderID = '%s'", update_orderid);
+            int count = esql.executeQuery(check_order); //check if order exist
+            if (count <= 0) {
+               System.out.println("Order does not exist");
+               return;
+            }
+
+            System.out.println(String.format("Update Status for Order %s to Complete: ", update_orderid));
+            System.out.println("1. Yes");
+            System.out.println("2. No");
+
+            switch (readChoice()) {
+               case 1:
+                  String update_status_query = String.format("UPDATE FoodOrder SET orderStatus = 'complete' WHERE orderId = '%s'", update_orderid);
+                  esql.executeUpdate(update_status_query);
+                  break;
+               case 2:
+                  break;
+               default:
+                  break;
+            }
+
+            return; 
+         }
+      }catch(Exception e) {
+            System.err.println("An error occured when while updating the order status: " + e.getMessage());   
+      }
+   }// end updateOrderStatus
+
    public static void updateMenu(PizzaStore esql) {}
    
    /*
