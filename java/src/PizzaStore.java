@@ -1057,7 +1057,60 @@ public class PizzaStore {
 
    public static void viewRecentOrders(PizzaStore esql) {}
    public static void viewOrderInfo(PizzaStore esql) {}
-   public static void viewStores(PizzaStore esql) {}
+
+   /**
+    * Customers should be able to view the list of all stores. They should see all
+    * information about the location of the store, the storeID, the review score, and whether or
+    * not it is open
+    */
+    public static void viewStores(PizzaStore esql) {
+      try {
+         // Query to fetch all necessary store details
+         String query = "SELECT storeID, address, city, state, reviewScore, isOpen FROM Store ORDER BY storeID;";
+         List<List<String>> stores = esql.executeQueryAndReturnResult(query);
+         
+         if (stores.size() == 0) {
+            System.out.println("No stores available at the moment.");
+            return;
+         }
+         
+         // Define a formatted table header
+         String line = "+---------+-----------------------------+--------------------+----------------------+-------------+---------+";
+         System.out.println(line);
+         System.out.printf("| %-7s | %-27s | %-18s | %-20s | %-11s | %-7s |\n", 
+                           "StoreID", "Address", "City", "State", "ReviewScore", "IsOpen");
+         System.out.println(line);
+         
+         // Loop through the result set and print each store record
+         for (List<String> store : stores) {
+            String storeID = store.get(0);
+            String address = store.get(1);
+            String city = store.get(2);
+            String state = store.get(3);
+            String reviewScoreStr = store.get(4);
+            String isOpen = store.get(5);
+
+            // Convert review score from string to double
+            double reviewScore = Double.parseDouble(reviewScoreStr);
+            // Assume review score is out of 5.
+            int fullStars = (int) reviewScore;
+            int emptyStars = 5 - fullStars;
+            StringBuilder stars = new StringBuilder();
+            for (int i = 0; i < fullStars; i++) {
+               stars.append("★");
+            }
+            for (int i = 0; i < emptyStars; i++) {
+               stars.append("☆");
+            }
+            
+            System.out.printf("| %-7s | %-27s | %-18s | %-20s | %-11s | %-7s |\n", 
+                              storeID, address, city, state, stars.toString(), isOpen);
+         }
+         System.out.println(line);
+      } catch (Exception e) {
+         System.err.println("An error occurred while viewing stores: " + e.getMessage());
+      }
+   }
 
    /**
     * Update the Order Status of a given orderID (must be driver or manager)
