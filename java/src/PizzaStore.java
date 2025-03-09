@@ -363,8 +363,8 @@ public class PizzaStore {
       return input;
    }//end readChoice
 
-   /*
-    * Creates a new user
+   /**
+    * Function to create a new user
     **/
    public static void CreateUser(PizzaStore esql){
       try {
@@ -431,8 +431,9 @@ public class PizzaStore {
       }
    }//end CreateUser
 
-   /*
+   /**
     * Check log in credentials for an existing user
+    * @param esql the PizzaStore object
     * @return User login or null is the user does not exist
     **/
    public static String LogIn(PizzaStore esql){
@@ -472,8 +473,11 @@ public class PizzaStore {
       return null;
    }//end LogIn
 
-// Rest of the functions definition go in here
-
+   /**
+    * Helper function to print the profile of a user.
+    * @param esql the PizzaStore object
+    * @param login the login of the user to print the profile of
+    **/
    public static void printProfileHelper(PizzaStore esql, String login) {
       System.out.println("\n=== Profile for " + login + " ===");
       try {
@@ -501,12 +505,22 @@ public class PizzaStore {
      }
    }
 
+   /**
+    * View the profile of the current user.
+    * @param esql the PizzaStore object
+    */
    public static void viewProfile(PizzaStore esql) {
       String login = esql.getCurrentUser();
       printProfileHelper(esql, login);
    }
    
-   public static void updateProfile(PizzaStore esql) {}
+   /**
+    * Update the profile of the current user.
+    * @param esql
+    */
+   public static void updateProfile(PizzaStore esql) {
+      
+   }
    public static void viewMenu(PizzaStore esql) {}
    public static void placeOrder(PizzaStore esql) {}
 
