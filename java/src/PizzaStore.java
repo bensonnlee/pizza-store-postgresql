@@ -475,7 +475,6 @@ public class PizzaStore {
 
    /**
     * Helper function to print the profile of a user.
-    * @param esql the PizzaStore object
     * @param login the login of the user to print the profile of
     **/
    public static void printProfileHelper(PizzaStore esql, String login) {
@@ -516,12 +515,100 @@ public class PizzaStore {
    
    /**
     * Update the profile of the current user.
-    * @param esql
     */
    public static void updateProfile(PizzaStore esql) {
-      
+      String login = esql.getCurrentUser();
+      System.out.println("\n=== Profile Update Menu for " + login + " ===");
+      boolean update_menu = true;
+      while (update_menu) {
+         System.out.println("1. Update favorite item");
+         System.out.println("2. Update phone number");
+         System.out.println("3. Update password");
+         System.out.println("9. < Return to main menu");
+
+         switch (readChoice()) {
+            case 1: //update favorite items
+               try {
+                  String favoriteItem;
+                  System.out.print("Select your favorite item:\n");
+
+                  // fetch all items from the Items table
+                  List<List<String>> items = esql.executeQueryAndReturnResult("SELECT itemName FROM Items;");
+                  for (int i = 0; i < items.size(); i++) {
+                     System.out.println((i + 1) + ". " + items.get(i).get(0));
+                  }
+
+                  // get user choice and check for validation
+                  int choice = readChoice();
+                  if (choice < 1 || choice > items.size()) {
+                     System.out.println("Invalid choice. Please select a valid item.");
+                     break;
+                  }
+                  favoriteItem = items.get(choice - 1).get(0);
+
+                  // update the user's favorite item
+                  String update_query = String.format("UPDATE Users SET favoriteItems = '%s' WHERE login = '%s';", favoriteItem, login);
+                  esql.executeUpdate(update_query);
+                  System.out.println("Favorite item updated successfully to " + favoriteItem + ".");
+               } catch (Exception e) {
+                  System.err.println("An error occurred while updating favorite items: " + e.getMessage());
+               }
+               break;
+            case 2: //update phone number
+               try {
+                  String phoneNum;
+                  System.out.print("Enter phone number: ");
+                  phoneNum = in.readLine().trim();
+
+                  // validate phone number
+                  String phoneRegex = "^\\d{3}-\\d{3}-\\d{4}$";
+                  if (phoneNum.isEmpty()) {
+                     System.out.println("Error: Phone number cannot be empty.");
+                     break;
+                  }
+                  if (!phoneNum.matches(phoneRegex)) {
+                     System.out.println("Error: Phone number must be in the format XXX-XXX-XXXX.");
+                     break;
+                  }
+
+                  String update_query = String.format("UPDATE Users SET phoneNum = '%s' WHERE login = '%s';", phoneNum, login);
+                  esql.executeUpdate(update_query);
+                  System.out.println("Phone number updated successfully.");
+               } catch (Exception e) {
+                  System.err.println("An error occurred while updating phone number: " + e.getMessage());
+               }
+               break;
+            case 3: //update password
+               try {
+                  String password;
+                  System.out.print("Enter new password: ");
+                  password = in.readLine().trim();
+
+                  // validate password
+                  if (password.length() > 50 || password.isEmpty()) {
+                     System.out.println("Error: Password must be between 1 and 50 characters.");
+                     break;
+                  }
+
+                  String update_query = String.format("UPDATE Users SET password = '%s' WHERE login = '%s';", password, login);
+                  esql.executeUpdate(update_query);
+                  System.out.println("Password updated successfully.");
+               } catch (Exception e) {
+                  System.err.println("An error occurred while updating password: " + e.getMessage());
+               }
+               break;
+            case 9:
+               update_menu = false;
+               break;
+            default:
+               System.out.println("Unrecognized choice!");
+               break;
+         }
+      }
    }
+
    public static void viewMenu(PizzaStore esql) {}
+
    public static void placeOrder(PizzaStore esql) {}
 
    /*
@@ -685,8 +772,8 @@ public class PizzaStore {
    public static void viewOrderInfo(PizzaStore esql) {}
    public static void viewStores(PizzaStore esql) {}
 
-   /*
-      Update the Order Status of a given orderID (must be driver or manager)
+   /**
+    * Update the Order Status of a given orderID (must be driver or manager)
    */
    public static void updateOrderStatus(PizzaStore esql) {
       try {
@@ -695,7 +782,7 @@ public class PizzaStore {
          List<List<String>> user = esql.executeQueryAndReturnResult(user_role_query);
          String user_role = user.get(0).get(0).trim(); // check if role is not customer
 
-         if (!user_role.equals(String.format("customer"))) {
+         if (user_role.equals(String.format("driver")) || user_role.equals(String.format("manager"))) {
             String update_orderid; //get order id to update
             System.out.print("Order ID: ");
             update_orderid = in.readLine().trim();
@@ -703,24 +790,32 @@ public class PizzaStore {
             String check_order = String.format("SELECT * FROM FoodOrder WHERE orderID = '%s'", update_orderid);
             int count = esql.executeQuery(check_order); //check if order exist
             if (count <= 0) {
-               System.out.println("Order does not exist");
+               System.out.println("Error: Order does not exist.\n");
                return;
             }
 
-            System.out.println(String.format("Update Status for Order %s to Complete: ", update_orderid));
-            System.out.println("1. Yes");
-            System.out.println("2. No");
+            System.out.println(String.format("Update Status for Order %s: ", update_orderid));
+            System.out.println("1. Complete");
+            System.out.println("2. Incomplete");
 
+            String update_status_query;
+            String update_status = "";
             switch (readChoice()) {
                case 1:
-                  String update_status_query = String.format("UPDATE FoodOrder SET orderStatus = 'complete' WHERE orderId = '%s'", update_orderid);
+                  update_status_query = String.format("UPDATE FoodOrder SET orderStatus = 'complete' WHERE orderId = '%s'", update_orderid);
                   esql.executeUpdate(update_status_query);
+                  update_status = "complete";
                   break;
                case 2:
+                  update_status_query = String.format("UPDATE FoodOrder SET orderStatus = 'incomplete' WHERE orderId = '%s'", update_orderid);
+                  esql.executeUpdate(update_status_query);
+                  update_status = "incomplete";
                   break;
                default:
                   break;
             }
+
+            System.out.println("Order status for order " + update_orderid + " updated successfully to " + update_status + ".\n"); 
 
             return; 
          }
@@ -731,8 +826,8 @@ public class PizzaStore {
 
    public static void updateMenu(PizzaStore esql) {}
    
-   /*
-      Update a user's login and role as a manager
+   /**
+    * Update a user's login and role as a manager
    */
    public static void updateUser(PizzaStore esql) {
       try {
