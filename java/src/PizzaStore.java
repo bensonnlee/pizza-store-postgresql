@@ -607,7 +607,136 @@ public class PizzaStore {
       }
    }
 
-   public static void viewMenu(PizzaStore esql) {}
+   /**
+    * Allows the user to view all the items on the menu.
+    * Users can filter by item type (using the typeOfItem column) and/or
+    * by a maximum price. They can also choose to sort the results by price 
+    * in ascending (lowest to highest) or descending (highest to lowest) order.
+    * The results are displayed in a nicely formatted table.
+    */
+   public static void viewMenu(PizzaStore esql) {
+      try {
+         // Prompt for filtering by item type
+         System.out.println("Select item type to filter by or press Enter to skip:");
+         System.out.println("1. Entree");
+         System.out.println("2. Sides");
+         System.out.println("3. Drinks");
+         String typeChoice = in.readLine().trim();
+         String typeFilter = "";
+         if (!typeChoice.isEmpty()) {
+            try {
+               int choice = Integer.parseInt(typeChoice);
+               switch(choice) {
+                     case 1: 
+                        typeFilter = "entree";
+                        break;
+                     case 2: 
+                        typeFilter = "sides";
+                        break;
+                     case 3: 
+                        typeFilter = "drinks";
+                        break;
+                     default:
+                        System.out.println("Invalid choice. No type filter will be applied.");
+                        break;
+               }
+            } catch (NumberFormatException e) {
+                  System.out.println("Invalid input. No type filter will be applied.");
+            }
+         }
+
+         // Prompt for filtering by maximum price
+         System.out.print("Enter maximum price to filter by or press Enter to skip: ");
+         String priceInput = in.readLine().trim();
+         Double maxPrice = null;
+         if (!priceInput.isEmpty()) {
+            try {
+                  maxPrice = Double.parseDouble(priceInput);
+            } catch (NumberFormatException nfe) {
+                  System.out.println("Invalid price entered. Price filter will be ignored.");
+            }
+         }
+
+         // Prompt for sorting option
+         System.out.println("Sort by price? (Press Enter to skip sorting)");
+         System.out.println("1. Ascending (lowest to highest)");
+         System.out.println("2. Descending (highest to lowest)");
+         String sortInput = in.readLine().trim();
+         int sortChoice = 3; // default: no sorting
+         if (!sortInput.isEmpty()) {
+            try {
+               sortChoice = Integer.parseInt(sortInput);
+            } catch (NumberFormatException e) {
+               System.out.println("Invalid input. No sorting will be applied.");
+               sortChoice = 3;
+            }
+         }
+
+         // Build the base query using the Items table columns.
+         String query = "SELECT itemName, typeOfItem, price, description FROM Items";
+         boolean hasFilter = false;
+         String whereClause = "";
+
+         // Add item type filter if provided.
+         if (!typeFilter.isEmpty()) {
+            whereClause = whereClause + " typeOfItem = ' " + typeFilter + "'";
+            hasFilter = true;
+         }
+
+         // Add price filter if provided.
+         if (maxPrice != null) {
+            if (hasFilter) {
+                  whereClause += " AND";
+            }
+            whereClause = whereClause + " price <= " + maxPrice;
+            hasFilter = true;
+         }
+
+         // Append WHERE clause if any filters exist.
+         if (hasFilter) {
+            query += " WHERE" + whereClause;
+         }
+
+         // Append ORDER BY clause based on the user's sorting choice.
+         if (sortChoice == 1) {
+            query += " ORDER BY price ASC";
+         } else if (sortChoice == 2) {
+            query += " ORDER BY price DESC";
+         }
+
+         // Execute the query and fetch results.
+         System.out.println(query);
+         List<List<String>> results = esql.executeQueryAndReturnResult(query);
+
+         // If no items found, notify the user.
+         if (results.size() == 0) {
+            System.out.println("No items match your search criteria.");
+            return;
+         }
+
+         // Define the formatted table style similar to the profile output.
+         String line = "+--------------------------------+-----------------+----------+------------------------------------------+";
+         System.out.println(line);
+         System.out.printf("| %-30s | %-15s | %-8s | %-40s |\n", "Item Name", "Type", "Price", "Description");
+         System.out.println(line);
+
+         // Print each item row in the formatted table.
+         for (List<String> row : results) {
+            String itemName = row.get(0);
+            String itemType = row.get(1);
+            String price = row.get(2);
+            String description = row.get(3);
+            // Truncate description if it's too long.
+            if (description.length() > 40) {
+                  description = description.substring(0, 37) + "...";
+            }
+            System.out.printf("| %-30s | %-15s | %-8s | %-40s |\n", itemName, itemType, price, description);
+         }
+         System.out.println(line);
+      } catch (Exception e) {
+         System.err.println("An error occurred while viewing the menu: " + e.getMessage());
+      }
+   }
 
    public static void placeOrder(PizzaStore esql) {}
 
