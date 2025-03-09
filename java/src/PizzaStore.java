@@ -738,7 +738,165 @@ public class PizzaStore {
       }
    }
 
-   public static void placeOrder(PizzaStore esql) {}
+   /**
+    * Place an order for the current user.
+    * The user can order any item from the menu. User should first be asked which
+    * store they want to order from. User will be asked to input every itemName and quantity
+    * (the amount of each item they want) for each item they want to order. The total price of
+    * their order should be returned and output to the user. After placing the order, the order
+    * information needs to be inserted in the FoodOrder table with a unique orderID (and
+    * make sure you include the store they ordered at). Each itemName, orderID, and the
+    * corresponding quantity should be inserted into the ItemsInOrder table for every item in
+    * the order.
+    */
+   public static void placeOrder(PizzaStore esql) {
+      try {
+         // Display available stores in pages of 10 results
+         System.out.println("Available Stores:");
+         String storeQuery = "SELECT storeID, address, city, state FROM Store;";
+         List<List<String>> stores = esql.executeQueryAndReturnResult(storeQuery);
+         if (stores.size() == 0) {
+            System.out.println("No stores available at the moment.");
+            return;
+         }
+
+         int totalStores = stores.size();
+         int pageSize = 10;
+         int currentIndex = 0;
+
+         while (currentIndex < totalStores) {
+            // Print a page of stores
+            for (int i = currentIndex; i < Math.min(currentIndex + pageSize, totalStores); i++) {
+               List<String> store = stores.get(i);
+               System.out.printf("StoreID: %s, Address: %s, %s, %s\n",
+                                 store.get(0), store.get(1), store.get(2), store.get(3));
+            }
+            currentIndex += pageSize;
+            
+            // If there are more stores to display, ask the user if they want to continue.
+            if (currentIndex < totalStores) {
+               System.out.print("Press ENTER to see more results or type 'q' to quit: ");
+               String input = in.readLine().trim();
+               if (input.equalsIgnoreCase("q")) {
+                     break;
+               }
+            }
+         }
+         
+         // Ask user to choose a store
+         System.out.print("Enter the storeID you want to order from: ");
+         String storeInput = in.readLine().trim();
+         int storeID = Integer.parseInt(storeInput);
+         // Verify store exists
+         String checkStore = String.format("SELECT * FROM Store WHERE storeID = %d;", storeID);
+         int storeCount = esql.executeQuery(checkStore);
+         if (storeCount <= 0) {
+               System.out.println("Invalid store ID. Order cancelled.");
+               return;
+         }
+         
+         // Prepare to collect order items
+         List<String> itemNames = new ArrayList<>();
+         List<Integer> quantities = new ArrayList<>();
+         
+         // Prompt user to add items until they enter a blank item name.
+         while (true) {
+               // Retrieve all available menu items.
+               String menuQuery = "SELECT itemName FROM Items;";
+               List<List<String>> menuItems = esql.executeQueryAndReturnResult(menuQuery);
+               if (menuItems.size() == 0) {
+                  System.out.println("No menu items available at the moment.");
+                  break; // or return, depending on the context
+               }
+
+               // Display available menu items.
+               System.out.println("Available Menu Items:");
+               for (int i = 0; i < menuItems.size(); i++) {
+                  System.out.println((i + 1) + ". " + menuItems.get(i).get(0));
+               }
+
+               // Ask the user to pick an item from the list.
+               System.out.print("Select the number corresponding to the item you want to order (or press ENTER to finish): ");
+               String input = in.readLine().trim();
+               if (input.isEmpty()) {
+                  break; // exit the loop if the user is done ordering
+               }
+
+               int choice;
+               try {
+                  choice = Integer.parseInt(input);
+               } catch (NumberFormatException e) {
+                  System.out.println("Invalid input. Please enter a valid number.");
+                  continue; // prompt the user again
+               }
+
+               if (choice < 1 || choice > menuItems.size()) {
+                  System.out.println("Invalid choice. Please try again.");
+                  continue;
+               }
+
+               // Retrieve the selected item name.
+               String itemName = menuItems.get(choice - 1).get(0);
+               System.out.print("Enter quantity for " + itemName + ": ");
+               String qtyStr = in.readLine().trim();
+               int quantity = Integer.parseInt(qtyStr);
+               if (quantity <= 0) {
+                  System.out.println("Quantity must be positive. Try again.");
+                  continue;
+               }
+               // Add valid item and quantity to the order lists.
+               itemNames.add(itemName);
+               quantities.add(quantity);
+         }
+         
+         // Check that at least one item was ordered.
+         if (itemNames.size() == 0) {
+               System.out.println("No items ordered. Order cancelled.");
+               return;
+         }
+         
+         // Calculate the total price for the order.
+         double totalPrice = 0.0;
+         for (int i = 0; i < itemNames.size(); i++) {
+               String query = String.format("SELECT price FROM Items WHERE itemName = '%s';", itemNames.get(i));
+               List<List<String>> priceResult = esql.executeQueryAndReturnResult(query);
+               double price = Double.parseDouble(priceResult.get(0).get(0));
+               totalPrice += price * quantities.get(i);
+         }
+         
+         // Generate a unique orderID by finding the current maximum orderID and adding 1.
+         String maxQuery = "SELECT MAX(orderID) FROM FoodOrder;";
+         List<List<String>> maxResult = esql.executeQueryAndReturnResult(maxQuery);
+         int newOrderID = 1;
+         if (maxResult.size() > 0 && maxResult.get(0).get(0) != null) {
+               newOrderID = Integer.parseInt(maxResult.get(0).get(0)) + 1;
+         }
+         
+         // Insert the order into the FoodOrder table.
+         String currentUser = esql.getCurrentUser();
+         String insertOrder = String.format(
+               "INSERT INTO FoodOrder (orderID, login, storeID, totalPrice, orderTimestamp, orderStatus) " +
+               "VALUES (%d, '%s', %d, %.2f, now(), 'incomplete');",
+               newOrderID, currentUser, storeID, totalPrice);
+         esql.executeUpdate(insertOrder);
+         
+         // Insert each item in the order into the ItemsInOrder table.
+         for (int i = 0; i < itemNames.size(); i++) {
+               String insertItem = String.format(
+                  "INSERT INTO ItemsInOrder (orderID, itemName, quantity) " +
+                  "VALUES (%d, '%s', %d);",
+                  newOrderID, itemNames.get(i), quantities.get(i));
+               esql.executeUpdate(insertItem);
+         }
+         
+         // Output the total price to the user.
+         System.out.println("Order placed successfully!");
+         System.out.println("Your total price is: $" + String.format("%.2f", totalPrice));
+         
+      } catch (Exception e) {
+         System.err.println("An error occurred while placing the order: " + e.getMessage());
+      }
+   }
 
    /*
       View info about all user's order. Customers can only see their own order info.
