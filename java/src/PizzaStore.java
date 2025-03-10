@@ -1055,8 +1055,232 @@ public class PizzaStore {
       }
    }
 
-   public static void viewRecentOrders(PizzaStore esql) {}
-   public static void viewOrderInfo(PizzaStore esql) {}
+   /*
+      View your recent 5 orders 
+   */
+   public static void viewRecentOrders(PizzaStore esql) {
+      try {
+         String recent_order = String.format(
+            "SELECT F.orderID, F.orderTimestamp, F.totalPrice, F.orderStatus, I.itemName, I.quantity FROM FoodOrder F JOIN ItemsInOrder I ON F.orderID = I.orderID GROUP BY F.orderID, I.itemName, I.quantity HAVING F.login = '%s' ORDER BY F.orderID DESC", 
+            esql.getCurrentUser());
+         List<List<String>> user_orders = esql.executeQueryAndReturnResult(recent_order);
+         //turn the all user_orders into List of Lists of each order
+         if (user_orders.size() <= 0) {
+                  System.out.println("No orders in history");
+         }
+         List<List<String>> individual_orders = new ArrayList<>();
+         List<String> each_order = new ArrayList<>();
+         each_order.add(user_orders.get(0).get(0));
+         each_order.add(user_orders.get(0).get(1));
+         each_order.add(user_orders.get(0).get(2));
+         each_order.add(user_orders.get(0).get(3).trim());
+         each_order.add(user_orders.get(0).get(4));
+         each_order.add(user_orders.get(0).get(5));
+
+         //grab items in orders order = (orderID, itemName, quantity, itemName, quanitity, ...)
+         for (int i = 1; i < user_orders.size(); i++) {
+            String orderID = user_orders.get(i).get(0);
+
+            if (!orderID.equals(each_order.get(0))) {
+               individual_orders.add(each_order);
+               each_order = new ArrayList<>();
+               each_order.add(orderID);
+               each_order.add(user_orders.get(i).get(1));
+               each_order.add(user_orders.get(i).get(2));
+               each_order.add(user_orders.get(i).get(3).trim());
+            }
+
+            each_order.add(user_orders.get(i).get(4));
+            each_order.add(user_orders.get(i).get(5));
+         }
+         individual_orders.add(each_order);
+
+         //print out the orders 
+         for (int i = 0; i < Math.min(individual_orders.size(), 5); i++) {
+            String id = individual_orders.get(i).get(0);
+            String timestamp = individual_orders.get(i).get(1);
+            String orderPrice = individual_orders.get(i).get(2);
+            String status = individual_orders.get(i).get(3);
+            String firstItem = individual_orders.get(i).get(4);
+            String firstQuantity = individual_orders.get(i).get(5);
+
+            String line = "+----------------------+------------------------------------------+";
+            System.out.println(line);
+            System.out.printf("| %-20s | %-40s |\n", "Field", "Value");
+            System.out.println(line);
+            System.out.printf("| %-20s | %-40s |\n", "OrderID", id);
+            System.out.printf("| %-20s | %-40s |\n", "Order Timestamp", timestamp);
+            System.out.printf("| %-20s | %-40s |\n", "Total Price", orderPrice);
+            System.out.printf("| %-20s | %-40s |\n", "Order Status", status);
+            System.out.printf("| %-20s | %-40s |\n", "", "");
+            System.out.println(line);
+            System.out.printf("| %-20s | %-40s |\n", "Items - Quantity", firstItem + " x " + firstQuantity);
+            for (int j = 6; j < individual_orders.get(i).size() - 1; j = j + 2) {
+               System.out.printf("| %-20s | %-40s |\n", "", individual_orders.get(i).get(j) + " x " +individual_orders.get(i).get(j + 1));
+            }
+            System.out.println(line);
+         }
+      }catch(Exception e) {
+         System.err.println("An error occured when while viewing the 5 recent orders: " + e.getMessage());
+      }
+   }//end viewRecentOrders
+
+   /*
+      View your a specific order based on a provided orderID (customers can only view their own and managers/drivers can view any)
+   */
+   public static void viewOrderInfo(PizzaStore esql) {
+      try {
+         //Get role of current user
+         String curr_user_login = esql.getCurrentUser();
+         String user_role_query = String.format("SELECT role FROM Users WHERE login = '%s'", curr_user_login);
+         List<List<String>> user = esql.executeQueryAndReturnResult(user_role_query);
+         String user_role = user.get(0).get(0).trim();
+
+         if (user_role.equals(String.format("customer"))) { //if customer, find order with user login
+            String food_order_query = 
+               String.format("SELECT F.orderID, F.orderTimestamp, F.totalPrice, F.orderStatus, I.itemName, I.quantity FROM FoodOrder F JOIN ItemsInOrder I ON F.orderID = I.orderID GROUP BY F.orderID, I.itemName, I.quantity HAVING F.login = '%s' ORDER BY F.orderID ASC", 
+               curr_user_login);
+            List<List<String>> user_orders = esql.executeQueryAndReturnResult(food_order_query);
+            if (user_orders.size() <= 0) {
+               System.out.println("No orders in history");
+            }
+
+            //turn the all user_orders into List of Lists of each order
+            List<List<String>> individual_orders = new ArrayList<>();
+            List<String> each_order = new ArrayList<>();
+            each_order.add(user_orders.get(0).get(0));
+            each_order.add(user_orders.get(0).get(1));
+            each_order.add(user_orders.get(0).get(2));
+            each_order.add(user_orders.get(0).get(3).trim());
+            each_order.add(user_orders.get(0).get(4));
+            each_order.add(user_orders.get(0).get(5));
+
+            //grab items in orders order = (orderID, itemName, quantity, itemName, quanitity, ...)
+            for (int i = 1; i < user_orders.size(); i++) {
+               String orderID = user_orders.get(i).get(0);
+
+               if (!orderID.equals(each_order.get(0))) {
+                  individual_orders.add(each_order);
+                  each_order = new ArrayList<>();
+                  each_order.add(orderID);
+                  each_order.add(user_orders.get(i).get(1));
+                  each_order.add(user_orders.get(i).get(2));
+                  each_order.add(user_orders.get(i).get(3).trim());
+               }
+
+               each_order.add(user_orders.get(i).get(4));
+               each_order.add(user_orders.get(i).get(5));
+
+            }
+            individual_orders.add(each_order);
+            
+            String order_id;
+            System.out.print("Provide the orderID of the order you want to look at: ");
+            order_id = in.readLine().trim();
+
+            //print out the orders 
+            for (int i = 0; i < individual_orders.size(); i++) {
+               String id = individual_orders.get(i).get(0);
+               String timestamp = individual_orders.get(i).get(1);
+               String orderPrice = individual_orders.get(i).get(2);
+               String status = individual_orders.get(i).get(3);
+               String firstItem = individual_orders.get(i).get(4);
+               String firstQuantity = individual_orders.get(i).get(5);
+
+               if (id.equals(order_id)) {
+                  String line = "+----------------------+------------------------------------------+";
+                  System.out.println(line);
+                  System.out.printf("| %-20s | %-40s |\n", "Field", "Value");
+                  System.out.println(line);
+                  System.out.printf("| %-20s | %-40s |\n", "OrderID", id);
+                  System.out.printf("| %-20s | %-40s |\n", "Order Timestamp", timestamp);
+                  System.out.printf("| %-20s | %-40s |\n", "Total Price", orderPrice);
+                  System.out.printf("| %-20s | %-40s |\n", "Order Status", status);
+                  System.out.printf("| %-20s | %-40s |\n", "", "");
+                  System.out.println(line);
+                  System.out.printf("| %-20s | %-40s |\n", "Items - Quantity", firstItem + " x " + firstQuantity);
+                  for (int j = 6; j < individual_orders.get(i).size() - 1; j = j + 2) {
+                     System.out.printf("| %-20s | %-40s |\n", "", individual_orders.get(i).get(j) + " x " +individual_orders.get(i).get(j + 1));
+                  }
+                  System.out.println(line);
+               }
+            }
+         }
+         else { //if current user is a manager or driver
+            String food_order_query = 
+               String.format("SELECT F.orderID, F.orderTimestamp, F.totalPrice, F.orderStatus, I.itemName, I.quantity FROM FoodOrder F JOIN ItemsInOrder I ON F.orderID = I.orderID GROUP BY F.orderID, I.itemName, I.quantity ORDER BY F.orderID ASC");
+            List<List<String>> user_orders = esql.executeQueryAndReturnResult(food_order_query);
+            if (user_orders.size() <= 0) {
+               System.out.println("No orders in history");
+            }
+
+            List<List<String>> individual_orders = new ArrayList<>();
+            List<String> each_order = new ArrayList<>();
+            each_order.add(user_orders.get(0).get(0));
+            each_order.add(user_orders.get(0).get(1));
+            each_order.add(user_orders.get(0).get(2));
+            each_order.add(user_orders.get(0).get(3).trim());
+            each_order.add(user_orders.get(0).get(4));
+            each_order.add(user_orders.get(0).get(5));
+
+            //grab items in orders order = (orderID, itemName, quantity, itemName, quanitity, ...)
+            for (int i = 1; i < user_orders.size(); i++) {
+               String orderID = user_orders.get(i).get(0);
+
+               if (!orderID.equals(each_order.get(0))) {
+                  individual_orders.add(each_order);
+                  each_order = new ArrayList<>();
+                  each_order.add(orderID);
+                  each_order.add(user_orders.get(i).get(1));
+                  each_order.add(user_orders.get(i).get(2));
+                  each_order.add(user_orders.get(i).get(3).trim());
+               }
+
+               each_order.add(user_orders.get(i).get(4));
+               each_order.add(user_orders.get(i).get(5));
+
+            }
+            individual_orders.add(each_order);
+
+            System.out.println(individual_orders);
+            String order_id; //get orderid
+            System.out.print("Provide the orderID of the order you want to look at: ");
+            order_id = in.readLine().trim();
+
+            //print out the orders
+            for (int i = 0; i < individual_orders.size(); i++) {
+               String id = individual_orders.get(i).get(0);
+               String timestamp = individual_orders.get(i).get(1);
+               String orderPrice = individual_orders.get(i).get(2);
+               String status = individual_orders.get(i).get(3);
+               String firstItem = individual_orders.get(i).get(4);
+               String firstQuantity = individual_orders.get(i).get(5);
+
+               if (id.equals(order_id)) {
+                  String line = "+----------------------+------------------------------------------+";
+                  System.out.println(line);
+                  System.out.printf("| %-20s | %-40s |\n", "Field", "Value");
+                  System.out.println(line);
+                  System.out.printf("| %-20s | %-40s |\n", "OrderID", id);
+                  System.out.printf("| %-20s | %-40s |\n", "Order Timestamp", timestamp);
+                  System.out.printf("| %-20s | %-40s |\n", "Total Price", orderPrice);
+                  System.out.printf("| %-20s | %-40s |\n", "Order Status", status);
+                  System.out.printf("| %-20s | %-40s |\n", "", "");
+                  System.out.println(line);
+                  System.out.printf("| %-20s | %-40s |\n", "Items - Quantity", firstItem + " x " + firstQuantity);
+                  for (int j = 6; j < individual_orders.get(i).size() - 1; j = j + 2) {
+                     System.out.printf("| %-20s | %-40s |\n", "", individual_orders.get(i).get(j) + " x " +individual_orders.get(i).get(j + 1));
+                  }
+                  System.out.println(line);
+               }
+            }
+         }
+
+         return;
+      }catch(Exception e) {
+         System.err.println("An error occured when while viewing an order: " + e.getMessage());
+      }
+   }//end viewOrderInfo
 
    /**
     * Customers should be able to view the list of all stores. They should see all
@@ -1164,7 +1388,218 @@ public class PizzaStore {
       }
    }// end updateOrderStatus
 
-   public static void updateMenu(PizzaStore esql) {}
+   /*
+      Managers can update the information of any item in the menu given the itemName and add in new items.
+   */
+   public static void updateMenu(PizzaStore esql) {
+      try {
+         String curr_user_login = esql.getCurrentUser();
+         String user_role_query = String.format("SELECT role FROM Users WHERE login = '%s'", curr_user_login);
+         List<List<String>> user = esql.executeQueryAndReturnResult(user_role_query);
+         String user_role = user.get(0).get(0).trim();
+
+         if (user_role.equals(String.format("manager"))) {
+            String menu_query = String.format("SELECT itemName, price, typeOfItem FROM Items ORDER BY CASE WHEN typeOfItem = ' entree' THEN 1 WHEN typeOfItem = ' drinks' THEN 2 WHEN typeOfItem = ' sides' THEN 3 END ASC");
+            List<List<String>> menu = esql.executeQueryAndReturnResult(menu_query);//ORDER BY price DESC
+            System.out.println(menu);
+            String line = "+------------------------------------------+----------------------+"; //rbandyo,cpendreigho
+            System.out.println(line);
+            System.out.printf("| %-40s | %-20s |\n", "Item", "Price");
+            System.out.println(line);
+            for (int i = 0; i < menu.size(); ++i) {
+               String item = menu.get(i).get(0);
+               String price = menu.get(i).get(1);
+               System.out.printf("| %-40s | %-20s |\n", item, price);
+            }
+            System.out.println(line);
+            System.out.println("MENU UPDATE");
+            System.out.println("-----------");
+            System.out.println("1. Update an existing item");
+            System.out.println("2. Add a new item");
+            System.out.println("9. < EXIT");
+            switch(readChoice()) {//rbandyo,cpendreigho
+               case 1:
+                  String update_item;
+                  System.out.print("Select an item to update: ");
+                  update_item = in.readLine().trim();
+                  String check_item = String.format("SELECT * FROM Items WHERE itemName = '%s'", update_item);
+                  int count = esql.executeQuery(check_item);
+                  if (count <= 0) {
+                     System.out.println(String.format("%s is not on the menu", update_item));
+                     break;
+                  }
+                  System.out.println("ITEM UPDATE");
+                  System.out.println("-----------");
+                  System.out.println("1. Update item name");
+                  System.out.println("2. Update item ingredients");
+                  System.out.println("3. Update item type");
+                  System.out.println("4. Update item price");
+                  System.out.println("5. Update item description");
+                  System.out.println("9. < EXIT");
+                  switch(readChoice()) {
+                     case 1:
+                        String new_item_name;
+                        System.out.print(String.format("Provide a new name for %s: ", update_item));
+                        new_item_name = in.readLine().trim();
+                        String check_item2 = String.format("SELECT * FROM Items WHERE itemName = '%s'", new_item_name);
+                        int count2 = esql.executeQuery(check_item2);
+                        if (count2 > 0) {
+                           System.out.println(String.format("%s is already on the menu", new_item_name));
+                           break;
+                        }
+                        String update_name = String.format("UPDATE Items SET itemName = '%s' WHERE itemName = '%s'", new_item_name, update_item);
+                        esql.executeUpdate(update_name);
+                        System.out.println(String.format("%s is now %s", update_item, new_item_name));
+                        break;
+                     case 2:
+                        String new_item_ingredients;
+                        List<List<String>> curr_ingredients = esql.executeQueryAndReturnResult(String.format("SELECT ingredients FROM Items WHERE itemName = '%s'", update_item));
+                        System.out.println(String.format("Current ingredients for %s: %s", update_item, curr_ingredients.get(0).get(0)));
+                        System.out.print(String.format("Provide updated ingredients for %s (separated by commas): ", update_item));
+                        new_item_ingredients = in.readLine().trim();
+                        new_item_ingredients = String.format("\"%s\"", new_item_ingredients);
+                        String update_ingredients = String.format("UPDATE Items SET ingredients = '%s' WHERE itemName = '%s'", new_item_ingredients, update_item);
+                        esql.executeUpdate(update_ingredients);
+                        System.out.println(String.format("%s's is now %s", update_item, new_item_ingredients));
+                        break;
+                     case 3:
+                        List<List<String>> curr_type = esql.executeQueryAndReturnResult(String.format("SELECT typeOfItem FROM Items WHERE itemName = '%s'", update_item));
+                        String update_type = String.format("UPDATE Items SET typeOfItem = ");
+                        String new_type = "";
+                        System.out.println(String.format("UPDATE %s FROM %s TO: ", update_item, curr_type.get(0).get(0).trim()));
+                        System.out.println("-----------");
+                        System.out.println("1. entree");
+                        System.out.println("2. drinks");
+                        System.out.println("3. sides");
+                        switch(readChoice()) {
+                           case 1:
+                              new_type = " entree";
+                              break;
+                           case 2:
+                              new_type = " drinks";
+                              break;
+                           case 3:
+                              new_type = " sides";
+                              break;
+                           default:
+                              System.out.println("Invalid choice");
+                              return;
+                        }
+                        update_type += String.format("'%s' WHERE itemName = '%s'", new_type, update_item);
+                        esql.executeUpdate(update_type);
+                        break;
+                     case 4:
+                        double new_item_price = 0.0;
+                        System.out.print(String.format("Provide a new price for %s", update_item));
+                        try {
+                           new_item_price = Double.parseDouble(in.readLine().trim());
+                        }catch(Exception e) {
+                           System.err.println("Invalid input: " + e.getMessage());
+                        }
+                        String update_price = String.format("UPDATE Items SET price = '%f' WHERE itemName = '%s'", new_item_price, update_item);
+                        esql.executeUpdate(update_price);
+                        System.out.println(String.format("%s is now %f", update_item, new_item_price));
+                        break;
+                     case 5:
+                        String new_item_description;
+                        List<List<String>> curr_description = esql.executeQueryAndReturnResult(String.format("SELECT description FROM Items WHERE itemName = '%s'", update_item));
+                        System.out.println(String.format("Current description for %s: %s", update_item, curr_description.get(0).get(0)));
+                        System.out.print(String.format("Provide updated decription for %s : ", update_item));
+                        new_item_description = in.readLine().trim();
+                        new_item_description = String.format("\"%s\"", new_item_description);
+                        String update_description = String.format("UPDATE Items SET description = '%s' WHERE itemName = '%s'", new_item_description, update_item);
+                        esql.executeUpdate(update_description);
+                        break;
+                     case 9:
+                        break;
+                     default:
+                        System.out.println("Invalid choice");
+                        break;
+                  }
+                  break;
+               case 2:
+                  String new_item_name;
+                  String new_item_ingredients;
+                  String new_item_type;
+                  double new_item_price = 0.0;
+                  String new_item_description;
+                  
+                  System.out.print("Provide the new item's name: ");
+                  new_item_name = in.readLine().trim();
+                  int count3 = esql.executeQuery(String.format("SELECT * FROM Items WHERE itemName = '%s'", new_item_name));
+                  if (count3 <= 0) {
+                     System.out.println("Item is already on the menu");
+                     return;
+                  }
+                  System.out.print("Provide the new item's ingredients (separated by commas): ");
+                  new_item_ingredients = in.readLine().trim();
+                  new_item_ingredients = String.format("\"%s\"");
+
+                  System.out.println("Provide the new item's type: ");
+                  System.out.println("1. entree");
+                  System.out.println("2. drinks");
+                  System.out.println("3. sides");
+                  switch(readChoice()) {
+                     case 1:
+                        new_item_type = " entree";
+                        break;
+                     case 2:
+                        new_item_type = " drinks";
+                        break;
+                     case 3:
+                        new_item_type = " sides";
+                        break;
+                     default:
+                        System.out.println("Invalid choice");
+                        return;
+                  }
+
+                  System.out.print("Provide the new item's price: ");
+                  try {
+                     new_item_price = Double.parseDouble(in.readLine().trim());
+                  }catch(Exception e) {
+                     System.err.println("Invalid input: " + e.getMessage());
+                  }
+
+                  System.out.print("Provide a description of the new item: ");
+                  new_item_description = in.readLine().trim();
+                  new_item_description = String.format("\"%s\"", new_item_description);
+
+                  String insert_new_item = String.format(
+                     "INSERT INTO Items (itemName, ingredients, typeOfItem, price, description) VALUES ('%s', '%s', '%s', %f, '%s')",
+                     new_item_name, new_item_ingredients, new_item_type, new_item_price, new_item_description);
+                  esql.executeUpdate(insert_new_item);
+                  System.out.println(String.format("%s is now on the menu", new_item_name));
+                  break;
+               case 9:
+                  break;
+               default:
+                  System.out.println("Invalid choice");
+                  break;
+            }
+            System.out.println("UPDATED MENU");
+            menu_query = String.format("SELECT itemName, price, typeOfItem FROM Items ORDER BY CASE WHEN typeOfItem = ' entree' THEN 1 WHEN typeOfItem = ' drinks' THEN 2 WHEN typeOfItem = ' sides' THEN 3 END ASC");
+            menu = esql.executeQueryAndReturnResult(menu_query);//ORDER BY price DESC
+            System.out.println(menu);
+            System.out.println(line);
+            System.out.printf("| %-40s | %-20s |\n", "Item", "Price");
+            System.out.println(line);
+            for (int i = 0; i < menu.size(); ++i) {
+               String item = menu.get(i).get(0);
+               String price = menu.get(i).get(1);
+               System.out.printf("| %-40s | %-20s |\n", item, price);
+            }
+            return;
+         }
+         else {
+            System.out.println("You are not a manager");
+         }
+
+         return;
+      }catch(Exception e) {
+         System.err.println("An error occured when updating the menu: " + e.getMessage());
+      }
+   }//end updateMenu
    
    /**
     * Update a user's login and role as a manager
