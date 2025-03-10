@@ -993,6 +993,7 @@ public class PizzaStore {
             List<List<String>> user_orders = esql.executeQueryAndReturnResult(food_order_query);
             if (user_orders.size() <= 0) {
                System.out.println("No orders in history");
+               return;
             }
 
             List<List<String>> individual_orders = new ArrayList<>();
@@ -1067,7 +1068,8 @@ public class PizzaStore {
          List<List<String>> user_orders = esql.executeQueryAndReturnResult(recent_order);
          //turn the all user_orders into List of Lists of each order
          if (user_orders.size() <= 0) {
-                  System.out.println("No orders in history");
+            System.out.println("No orders in history");
+            return;
          }
          List<List<String>> individual_orders = new ArrayList<>();
          List<String> each_order = new ArrayList<>();
