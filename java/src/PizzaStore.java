@@ -952,26 +952,26 @@ public class PizzaStore {
             //print out the orders 
             for (int i = 0; i < individual_orders.size(); i++) {
                String id = individual_orders.get(i).get(0);
-               String timestamp = individual_orders.get(i).get(1);
-               String orderPrice = individual_orders.get(i).get(2);
-               String status = individual_orders.get(i).get(3);
-               String firstItem = individual_orders.get(i).get(4);
-               String firstQuantity = individual_orders.get(i).get(5);
+               // String timestamp = individual_orders.get(i).get(1);
+               // String orderPrice = individual_orders.get(i).get(2);
+               // String status = individual_orders.get(i).get(3);
+               // String firstItem = individual_orders.get(i).get(4);
+               // String firstQuantity = individual_orders.get(i).get(5);
 
                String line = "+----------------------+------------------------------------------+";
                System.out.println(line);
                System.out.printf("| %-20s | %-40s |\n", "Field", "Value");
                System.out.println(line);
                System.out.printf("| %-20s | %-40s |\n", "OrderID", id);
-               System.out.printf("| %-20s | %-40s |\n", "Order Timestamp", timestamp);
-               System.out.printf("| %-20s | %-40s |\n", "Total Price", orderPrice);
-               System.out.printf("| %-20s | %-40s |\n", "Order Status", status);
-               System.out.printf("| %-20s | %-40s |\n", "", "");
-               System.out.println(line);
-               System.out.printf("| %-20s | %-40s |\n", "Items - Quantity", firstItem + " x " + firstQuantity);
-               for (int j = 6; j < individual_orders.get(i).size() - 1; j = j + 2) {
-                  System.out.printf("| %-20s | %-40s |\n", "", individual_orders.get(i).get(j) + " x " +individual_orders.get(i).get(j + 1));
-               }
+               // System.out.printf("| %-20s | %-40s |\n", "Order Timestamp", timestamp);
+               // System.out.printf("| %-20s | %-40s |\n", "Total Price", orderPrice);
+               // System.out.printf("| %-20s | %-40s |\n", "Order Status", status);
+               // System.out.printf("| %-20s | %-40s |\n", "", "");
+               // System.out.println(line);
+               // System.out.printf("| %-20s | %-40s |\n", "Items - Quantity", firstItem + " x " + firstQuantity);
+               // for (int j = 6; j < individual_orders.get(i).size() - 1; j = j + 2) {
+               //    System.out.printf("| %-20s | %-40s |\n", "", individual_orders.get(i).get(j) + " x " +individual_orders.get(i).get(j + 1));
+               // }
                System.out.println(line);
             }
          }
@@ -1027,26 +1027,26 @@ public class PizzaStore {
             //print out the orders
             for (int i = 0; i < individual_orders.size(); i++) {
                String id = individual_orders.get(i).get(0);
-               String timestamp = individual_orders.get(i).get(1);
-               String orderPrice = individual_orders.get(i).get(2);
-               String status = individual_orders.get(i).get(3);
-               String firstItem = individual_orders.get(i).get(4);
-               String firstQuantity = individual_orders.get(i).get(5);
+               // String timestamp = individual_orders.get(i).get(1);
+               // String orderPrice = individual_orders.get(i).get(2);
+               // String status = individual_orders.get(i).get(3);
+               // String firstItem = individual_orders.get(i).get(4);
+               // String firstQuantity = individual_orders.get(i).get(5);
 
                String line = "+----------------------+------------------------------------------+";
                System.out.println(line);
                System.out.printf("| %-20s | %-40s |\n", "Field", "Value");
                System.out.println(line);
                System.out.printf("| %-20s | %-40s |\n", "OrderID", id);
-               System.out.printf("| %-20s | %-40s |\n", "Order Timestamp", timestamp);
-               System.out.printf("| %-20s | %-40s |\n", "Total Price", orderPrice);
-               System.out.printf("| %-20s | %-40s |\n", "Order Status", status);
-               System.out.printf("| %-20s | %-40s |\n", "", "");
-               System.out.println(line);
-               System.out.printf("| %-20s | %-40s |\n", "Items - Quantity", firstItem + " x " + firstQuantity);
-               for (int j = 6; j < individual_orders.get(i).size() - 1; j = j + 2) {
-                  System.out.printf("| %-20s | %-40s |\n", "", individual_orders.get(i).get(j) + " x " +individual_orders.get(i).get(j + 1));
-               }
+               // System.out.printf("| %-20s | %-40s |\n", "Order Timestamp", timestamp);
+               // System.out.printf("| %-20s | %-40s |\n", "Total Price", orderPrice);
+               // System.out.printf("| %-20s | %-40s |\n", "Order Status", status);
+               // System.out.printf("| %-20s | %-40s |\n", "", "");
+               // System.out.println(line);
+               // System.out.printf("| %-20s | %-40s |\n", "Items - Quantity", firstItem + " x " + firstQuantity);
+               // for (int j = 6; j < individual_orders.get(i).size() - 1; j = j + 2) {
+               //    System.out.printf("| %-20s | %-40s |\n", "", individual_orders.get(i).get(j) + " x " +individual_orders.get(i).get(j + 1));
+               // }
                System.out.println(line);
             }
          }
@@ -1101,26 +1101,26 @@ public class PizzaStore {
          //print out the orders 
          for (int i = 0; i < Math.min(individual_orders.size(), 5); i++) {
             String id = individual_orders.get(i).get(0);
-            String timestamp = individual_orders.get(i).get(1);
-            String orderPrice = individual_orders.get(i).get(2);
-            String status = individual_orders.get(i).get(3);
-            String firstItem = individual_orders.get(i).get(4);
-            String firstQuantity = individual_orders.get(i).get(5);
+            // String timestamp = individual_orders.get(i).get(1);
+            // String orderPrice = individual_orders.get(i).get(2);
+            // String status = individual_orders.get(i).get(3);
+            // String firstItem = individual_orders.get(i).get(4);
+            // String firstQuantity = individual_orders.get(i).get(5);
 
             String line = "+----------------------+------------------------------------------+";
             System.out.println(line);
             System.out.printf("| %-20s | %-40s |\n", "Field", "Value");
             System.out.println(line);
             System.out.printf("| %-20s | %-40s |\n", "OrderID", id);
-            System.out.printf("| %-20s | %-40s |\n", "Order Timestamp", timestamp);
-            System.out.printf("| %-20s | %-40s |\n", "Total Price", orderPrice);
-            System.out.printf("| %-20s | %-40s |\n", "Order Status", status);
-            System.out.printf("| %-20s | %-40s |\n", "", "");
-            System.out.println(line);
-            System.out.printf("| %-20s | %-40s |\n", "Items - Quantity", firstItem + " x " + firstQuantity);
-            for (int j = 6; j < individual_orders.get(i).size() - 1; j = j + 2) {
-               System.out.printf("| %-20s | %-40s |\n", "", individual_orders.get(i).get(j) + " x " +individual_orders.get(i).get(j + 1));
-            }
+            // System.out.printf("| %-20s | %-40s |\n", "Order Timestamp", timestamp);
+            // System.out.printf("| %-20s | %-40s |\n", "Total Price", orderPrice);
+            // System.out.printf("| %-20s | %-40s |\n", "Order Status", status);
+            // System.out.printf("| %-20s | %-40s |\n", "", "");
+            // System.out.println(line);
+            // System.out.printf("| %-20s | %-40s |\n", "Items - Quantity", firstItem + " x " + firstQuantity);
+            // for (int j = 6; j < individual_orders.get(i).size() - 1; j = j + 2) {
+            //    System.out.printf("| %-20s | %-40s |\n", "", individual_orders.get(i).get(j) + " x " +individual_orders.get(i).get(j + 1));
+            // }
             System.out.println(line);
          }
       }catch(Exception e) {
