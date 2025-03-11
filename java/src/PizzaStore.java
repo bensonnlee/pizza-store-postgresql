@@ -917,6 +917,7 @@ public class PizzaStore {
             List<List<String>> user_orders = esql.executeQueryAndReturnResult(food_order_query);
             if (user_orders.size() <= 0) {
                System.out.println("No orders in history");
+               return;
             }
 
             //turn the all user_orders into List of Lists of each order
@@ -992,6 +993,7 @@ public class PizzaStore {
             List<List<String>> user_orders = esql.executeQueryAndReturnResult(food_order_query);
             if (user_orders.size() <= 0) {
                System.out.println("No orders in history");
+               return;
             }
 
             List<List<String>> individual_orders = new ArrayList<>();
@@ -1066,7 +1068,8 @@ public class PizzaStore {
          List<List<String>> user_orders = esql.executeQueryAndReturnResult(recent_order);
          //turn the all user_orders into List of Lists of each order
          if (user_orders.size() <= 0) {
-                  System.out.println("No orders in history");
+            System.out.println("No orders in history");
+            return;
          }
          List<List<String>> individual_orders = new ArrayList<>();
          List<String> each_order = new ArrayList<>();
@@ -1143,6 +1146,7 @@ public class PizzaStore {
             List<List<String>> user_orders = esql.executeQueryAndReturnResult(food_order_query);
             if (user_orders.size() <= 0) {
                System.out.println("No orders in history");
+               return;
             }
 
             //turn the all user_orders into List of Lists of each order
@@ -1212,6 +1216,7 @@ public class PizzaStore {
             List<List<String>> user_orders = esql.executeQueryAndReturnResult(food_order_query);
             if (user_orders.size() <= 0) {
                System.out.println("No orders in history");
+               return;
             }
 
             List<List<String>> individual_orders = new ArrayList<>();
@@ -1242,7 +1247,6 @@ public class PizzaStore {
             }
             individual_orders.add(each_order);
 
-            System.out.println(individual_orders);
             String order_id; //get orderid
             System.out.print("Provide the orderID of the order you want to look at: ");
             order_id = in.readLine().trim();
@@ -1527,7 +1531,7 @@ public class PizzaStore {
                   System.out.print("Provide the new item's name: ");
                   new_item_name = in.readLine().trim();
                   int count3 = esql.executeQuery(String.format("SELECT * FROM Items WHERE itemName = '%s'", new_item_name));
-                  if (count3 <= 0) {
+                  if (count3 > 0) {
                      System.out.println("Item is already on the menu");
                      return;
                   }
